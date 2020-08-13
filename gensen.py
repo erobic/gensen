@@ -17,8 +17,8 @@ class Encoder(nn.Module):
     """GenSen Encoder."""
 
     def __init__(
-        self, vocab_size, embedding_dim,
-        hidden_dim, num_layers, rnn_type='GRU'
+            self, vocab_size, embedding_dim,
+            hidden_dim, num_layers, rnn_type='GRU'
     ):
         """Initialize params."""
         super(Encoder, self).__init__()
@@ -40,8 +40,8 @@ class Encoder(nn.Module):
     def set_pretrained_embeddings(self, embedding_matrix):
         """Set embedding weights."""
         if (
-            embedding_matrix.shape[0] != self.src_embedding.weight.size(0) or
-            embedding_matrix.shape[1] != self.src_embedding.weight.size(1)
+                embedding_matrix.shape[0] != self.src_embedding.weight.size(0) or
+                embedding_matrix.shape[1] != self.src_embedding.weight.size(1)
         ):
             print('''
                 Warning pretrained embedding shape mismatch %d x %d
@@ -103,8 +103,8 @@ class GenSen(nn.Module):
             model.vocab_expansion(task_vocab)
 
     def get_representation(
-        self, sentences, pool='last',
-        tokenize=False, return_numpy=True, add_start_end=True
+            self, sentences, pool='last',
+            tokenize=False, return_numpy=True, add_start_end=True
     ):
         """Get model representations."""
         representations = [
@@ -116,18 +116,18 @@ class GenSen(nn.Module):
         ]
         if return_numpy:
             return np.concatenate([x[0] for x in representations], axis=2), \
-                np.concatenate([x[1] for x in representations], axis=1)
+                   np.concatenate([x[1] for x in representations], axis=1)
         else:
             return torch.cat([x[0] for x in representations], 2), \
-                torch.cat([x[1] for x in rerepresentations], 1)
+                   torch.cat([x[1] for x in rerepresentations], 1)
 
 
 class GenSenSingle(nn.Module):
     """GenSen Wrapper."""
 
     def __init__(
-        self, model_folder, filename_prefix,
-        pretrained_emb, cuda=False, rnn_type='GRU'
+            self, model_folder, filename_prefix,
+            pretrained_emb, cuda=False, rnn_type='GRU'
     ):
         """Initialize params."""
         super(GenSenSingle, self).__init__()
@@ -146,7 +146,7 @@ class GenSenSingle(nn.Module):
             open(os.path.join(
                 self.model_folder,
                 '%s_vocab.pkl' % (self.filename_prefix)
-            ))
+            ), 'rb'), encoding='utf-8'
         )
 
         # Word to index mappings
@@ -186,7 +186,7 @@ class GenSenSingle(nn.Module):
     def first_expansion(self):
         """Traing linear regression model for the first time."""
         # Read pre-trained word embedding h5 file
-        print 'Loading pretrained word embeddings'
+        print('Loading pretrained word embeddings')
         pretrained_embeddings = h5py.File(self.pretrained_emb)
         pretrained_embedding_matrix = pretrained_embeddings['embedding'].value
         pretrain_vocab = \
@@ -208,7 +208,7 @@ class GenSenSingle(nn.Module):
                     pretrained_embedding_matrix[pretrain_word2id[word]]
                 )
 
-        print 'Training vocab expansion on model'
+        print('Training vocab expansion on model')
         lreg = LinearRegression()
         lreg.fit(pretrain_train, model_train)
         self.lreg = lreg
@@ -263,8 +263,8 @@ class GenSenSingle(nn.Module):
                     self.model_embedding_matrix[self.word2id['<unk>']]
                 )
 
-        print 'Found %d task OOVs ' % (oov_task)
-        print 'Found %d pretrain OOVs ' % (oov_pretrain)
+        print('Found %d task OOVs ' % (oov_task))
+        print('Found %d pretrain OOVs ' % (oov_pretrain))
         task_embeddings = np.stack(task_embeddings)
         self.encoder.set_pretrained_embeddings(task_embeddings)
         self.vocab_expanded = True
@@ -311,8 +311,8 @@ class GenSenSingle(nn.Module):
         }
 
     def get_representation(
-        self, sentences, pool='last',
-        tokenize=False, return_numpy=True, add_start_end=True
+            self, sentences, pool='last',
+            tokenize=False, return_numpy=True, add_start_end=True
     ):
         """Get model representations."""
         minibatch = self.get_minibatch(
@@ -328,6 +328,7 @@ class GenSenSingle(nn.Module):
             return h.data.cpu().numpy(), h_t.data.cpu().numpy()
         else:
             return h, h_t
+
 
 if __name__ == '__main__':
     # Sentences need to be lowercased.
@@ -356,7 +357,7 @@ if __name__ == '__main__':
     )
     # reps_h contains the hidden states for all words in all sentences (padded to the max length of sentences) (batch_size x seq_len x 2048)
     # reps_h_t contains only the last hidden state for all sentences in the minibatch (batch_size x 2048)
-    print reps_h.shape, reps_h_t.shape
+    print(reps_h.shape + "" + reps_h_t.shape)
 
     gensen_2 = GenSenSingle(
         model_folder='./data/models',
@@ -369,4 +370,3 @@ if __name__ == '__main__':
     )
     # reps_h contains the hidden states for all words in all sentences (padded to the max length of sentences) (batch_size x seq_len x 2048)
     # reps_h_t contains only the last hidden state for all sentences in the minibatch (batch_size x 4096)
-    print reps_h.shape, reps_h_t.shape
